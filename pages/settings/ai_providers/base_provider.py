@@ -170,14 +170,19 @@ class BaseProviderSettingsPage(BaseSettingsSubPage):
         def do_load():
             try:
                 from openai import OpenAI
-                client = OpenAI(api_key=api_key, base_url=url)
+                # Add 30 second timeout to prevent infinite loading
+                client = OpenAI(api_key=api_key, base_url=url, timeout=30.0)
                 models_response = client.models.list()
                 models = [m.id for m in models_response.data]
                 models.sort()
                 
                 self.after(0, lambda: self._on_models_loaded(models))
             except Exception as e:
-                self.after(0, lambda: self._on_models_error(str(e)))
+                error_msg = str(e)
+                # Make timeout error more user-friendly
+                if "timed out" in error_msg.lower() or "timeout" in error_msg.lower():
+                    error_msg = "Request timed out (30s). Please check your internet connection or try again."
+                self.after(0, lambda: self._on_models_error(error_msg))
         
         threading.Thread(target=do_load, daemon=True).start()
     
@@ -205,7 +210,13 @@ class BaseProviderSettingsPage(BaseSettingsSubPage):
     def validate_config(self):
         """Validate provider configuration"""
         api_key = self.key_entry.get().strip()
-        model = self.model_var.get().strip()
+        
+        # Get model from entry or dropdown
+        if self.USE_MANUAL_INPUT:
+            model = self.model_entry.get().strip() if self.model_entry else ""
+        else:
+            model = self.model_var.get().strip() if self.model_var else ""
+        
         url = self.get_base_url()
         
         if not api_key:
@@ -218,11 +229,15 @@ class BaseProviderSettingsPage(BaseSettingsSubPage):
         
         try:
             from openai import OpenAI
-            client = OpenAI(api_key=api_key, base_url=url)
+            # Add 30 second timeout
+            client = OpenAI(api_key=api_key, base_url=url, timeout=30.0)
             client.models.list()
             messagebox.showinfo("Success", f"✓ Configuration valid!\n\nModel: {model}\nURL: {url}")
         except Exception as e:
-            messagebox.showerror("Error", f"Validation failed:\n{str(e)}")
+            error_msg = str(e)
+            if "timed out" in error_msg.lower() or "timeout" in error_msg.lower():
+                error_msg = "Request timed out (30s). Please check your internet connection or try again."
+            messagebox.showerror("Error", f"Validation failed:\n{error_msg}")
     
     def load_config(self):
         """Load config into UI"""
