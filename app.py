@@ -69,6 +69,8 @@ class YTShortClipperApp(ctk.CTk):
         self.youtube_channel = None
         self.ytdlp_path = get_ytdlp_path()  # NEW: Store yt-dlp path for subtitle fetching
         self.cookies_path = COOKIES_FILE  # NEW: Store cookies path
+        self._url_change_timer = None  # Debounce timer for URL changes
+        self._last_processed_url = ""  # Track last processed URL to avoid duplicates
         
         self.title("YT Short Clipper")
         self.geometry("780x620")
@@ -789,8 +791,27 @@ class YTShortClipperApp(ctk.CTk):
             return self.client
     
     def on_url_change(self, *args):
+        """Handle URL change with debouncing to prevent rapid calls"""
+        # Cancel any pending URL processing
+        if self._url_change_timer:
+            self.after_cancel(self._url_change_timer)
+            self._url_change_timer = None
+        
+        # Schedule URL processing after 500ms delay (debounce)
+        self._url_change_timer = self.after(500, self._process_url_change)
+    
+    def _process_url_change(self):
+        """Actually process the URL change (called after debounce delay)"""
+        self._url_change_timer = None
         url = self.url_var.get().strip()
+        
+        # Skip if URL hasn't actually changed
+        if url == self._last_processed_url:
+            return
+        
+        self._last_processed_url = url
         video_id = extract_video_id(url)
+        
         if video_id:
             # Reset subtitle loaded flag when URL changes
             self.subtitle_loaded = False

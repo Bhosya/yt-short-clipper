@@ -689,6 +689,30 @@ Transcript:
     def _get_subtitles_module(url: str, cookies_path: str, lang_names: dict) -> dict:
         """Get subtitles using yt-dlp Python module API"""
         try:
+            # Validate URL format first (fast fail for invalid URLs)
+            if not url or not isinstance(url, str):
+                return {"error": "Invalid URL", "subtitles": [], "automatic_captions": []}
+            
+            url = url.strip()
+            
+            # Quick validation - must look like a YouTube URL
+            youtube_patterns = [
+                'youtube.com/watch',
+                'youtu.be/',
+                'youtube.com/shorts/',
+                'youtube.com/live/',
+                'youtube.com/v/',
+                'youtube.com/embed/'
+            ]
+            
+            is_youtube = any(pattern in url.lower() for pattern in youtube_patterns)
+            if not is_youtube:
+                return {
+                    "error": "Invalid YouTube URL. Please enter a valid YouTube video link.",
+                    "subtitles": [],
+                    "automatic_captions": []
+                }
+            
             # Check if cookies.txt exists
             if not cookies_path or not Path(cookies_path).exists():
                 return {
@@ -745,6 +769,9 @@ Transcript:
                 'quiet': False,  # Show warnings for debugging
                 'no_warnings': False,
                 'cookiefile': str(cookies_path),  # Ensure string path
+                'socket_timeout': 30,  # 30 second timeout for network operations
+                'retries': 2,  # Retry 2 times on failure
+                'extract_flat': False,  # We need full info
             }
             
             # Add Deno JS runtime if available
@@ -796,6 +823,30 @@ Transcript:
     def _get_subtitles_subprocess(url: str, ytdlp_path: str, cookies_path: str, lang_names: dict) -> dict:
         """Get subtitles using yt-dlp subprocess (fallback)"""
         try:
+            # Validate URL format first (fast fail for invalid URLs)
+            if not url or not isinstance(url, str):
+                return {"error": "Invalid URL", "subtitles": [], "automatic_captions": []}
+            
+            url = url.strip()
+            
+            # Quick validation - must look like a YouTube URL
+            youtube_patterns = [
+                'youtube.com/watch',
+                'youtu.be/',
+                'youtube.com/shorts/',
+                'youtube.com/live/',
+                'youtube.com/v/',
+                'youtube.com/embed/'
+            ]
+            
+            is_youtube = any(pattern in url.lower() for pattern in youtube_patterns)
+            if not is_youtube:
+                return {
+                    "error": "Invalid YouTube URL. Please enter a valid YouTube video link.",
+                    "subtitles": [],
+                    "automatic_captions": []
+                }
+            
             # Check if cookies.txt exists
             if not cookies_path or not Path(cookies_path).exists():
                 return {
