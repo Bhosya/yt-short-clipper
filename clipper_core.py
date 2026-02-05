@@ -87,6 +87,7 @@ class AutoClipperCore:
         mediapipe_settings: dict = None,
         ai_providers: dict = None,
         subtitle_language: str = "id",
+        video_quality: int = 720,  # Video quality: 360, 480, 720, 1080
         log_callback=None,
         progress_callback=None,
         token_callback=None,
@@ -148,6 +149,7 @@ class AutoClipperCore:
             "center_weight": 0.3
         }
         self.subtitle_language = subtitle_language
+        self.video_quality = video_quality  # Video download quality (360, 480, 720, 1080)
         self.log = log_callback or print
         self.set_progress = progress_callback or (lambda s, p: None)
         self.report_tokens = token_callback or (lambda gi, go, w, t: None)
@@ -371,8 +373,10 @@ Transcript:
                 self.log("  Download finished, processing...")
                 self.set_progress("Processing downloaded file...", 0.25)
         
-        # Format selector - limit to 1080p max for faster downloads and sufficient quality for shorts
-        format_selector = "bestvideo[height<=1080]+bestaudio/best[height<=1080]/bestvideo+bestaudio/best"
+        # Format selector - configurable quality (default from config, fallback to 720p)
+        # Quality options: 360, 480, 720, 1080
+        max_height = getattr(self, 'video_quality', 720)
+        format_selector = f"bestvideo[height<={max_height}]+bestaudio/best[height<={max_height}]/bestvideo+bestaudio/best"
         
         # Base yt-dlp options
         ydl_opts = {

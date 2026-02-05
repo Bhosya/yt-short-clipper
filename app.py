@@ -1342,6 +1342,9 @@ class YTShortClipperApp(ctk.CTk):
                 "center_weight": 0.3
             })
             
+            # Get video quality from config (default 720p)
+            video_quality = self.config.get("video_quality", 720)
+            
             core = AutoClipperCore(
                 client=self.client,
                 ffmpeg_path=get_ffmpeg_path(),
@@ -1357,6 +1360,7 @@ class YTShortClipperApp(ctk.CTk):
                 mediapipe_settings=mediapipe_settings,
                 ai_providers=self.config.get("ai_providers"),
                 subtitle_language=subtitle_lang,
+                video_quality=video_quality,
                 log_callback=log_with_debug,
                 progress_callback=lambda s, p: self.after(0, lambda: self.update_progress(s, p)),
                 token_callback=lambda a, b, c, d: self.after(0, lambda: self.update_tokens(a, b, c, d)),
