@@ -371,8 +371,8 @@ Transcript:
                 self.log("  Download finished, processing...")
                 self.set_progress("Processing downloaded file...", 0.25)
         
-        # High-quality format selector
-        format_selector = "bestvideo[height>=720][height<=2160]+bestaudio/best[height>=720][height<=2160]/bestvideo+bestaudio/best"
+        # Format selector - limit to 1080p max for faster downloads and sufficient quality for shorts
+        format_selector = "bestvideo[height<=1080]+bestaudio/best[height<=1080]/bestvideo+bestaudio/best"
         
         # Base yt-dlp options
         ydl_opts = {
@@ -388,6 +388,7 @@ Transcript:
             'quiet': True,
             'no_warnings': False,
             'extract_flat': False,
+            'rm_cachedir': True,  # Clear cache to use fresh challenge solver
         }
         
         # Add Deno JS runtime if available
