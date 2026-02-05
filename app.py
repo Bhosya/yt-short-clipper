@@ -704,9 +704,14 @@ class YTShortClipperApp(ctk.CTk):
         )
     
     def load_config(self):
-        api_key = self.config.get("api_key", "")
-        base_url = self.config.get("base_url", "https://api.openai.com/v1")
-        model = self.config.get("model", "")
+        # Read from ai_providers (new structure) with fallback to root (legacy)
+        ai_providers = self.config.get("ai_providers", {})
+        hf_config = ai_providers.get("highlight_finder", {})
+        
+        # Try ai_providers first, fallback to root config for backward compatibility
+        api_key = hf_config.get("api_key", "") or self.config.get("api_key", "")
+        base_url = hf_config.get("base_url", "") or self.config.get("base_url", "https://api.openai.com/v1")
+        model = hf_config.get("model", "") or self.config.get("model", "")
         
         if api_key:
             try:
