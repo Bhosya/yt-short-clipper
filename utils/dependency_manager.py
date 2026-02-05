@@ -414,17 +414,33 @@ def check_dependency(name: str, app_dir: Path) -> bool:
     
     Returns:
         bool: True if installed, False otherwise
+    
+    Checks in order:
+        1. Bundled executable in app_dir (ffmpeg/ or bin/)
+        2. Executable in System PATH
     """
     os_type, _ = get_os_info()
     
     if name == 'ffmpeg':
         exe_name = "ffmpeg.exe" if os_type == 'windows' else "ffmpeg"
-        path = app_dir / "ffmpeg" / exe_name
-        return path.exists()
+        # Check bundled ffmpeg first
+        bundled_path = app_dir / "ffmpeg" / exe_name
+        if bundled_path.exists():
+            return True
+        # Check System PATH
+        if shutil.which("ffmpeg"):
+            return True
+        return False
     
     elif name == 'deno':
         exe_name = "deno.exe" if os_type == 'windows' else "deno"
-        path = app_dir / "bin" / exe_name
-        return path.exists()
+        # Check bundled deno first
+        bundled_path = app_dir / "bin" / exe_name
+        if bundled_path.exists():
+            return True
+        # Check System PATH
+        if shutil.which("deno"):
+            return True
+        return False
     
     return False
