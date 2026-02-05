@@ -96,6 +96,13 @@ class PerformanceSettingsSubPage(BaseSettingsSubPage):
     
     def _on_gpu_detected(self, gpu_info, recommendation):
         """Handle GPU detection result"""
+        # Check if widget still exists (user might have closed the page)
+        try:
+            if not self.winfo_exists():
+                return
+        except:
+            return
+        
         self.detect_gpu_btn.configure(state="normal", text="🔄 Detect GPU")
         
         if gpu_info['available']:
@@ -136,6 +143,13 @@ class PerformanceSettingsSubPage(BaseSettingsSubPage):
     
     def _on_gpu_detect_error(self, error):
         """Handle GPU detection error"""
+        # Check if widget still exists (user might have closed the page)
+        try:
+            if not self.winfo_exists():
+                return
+        except:
+            return
+        
         self.detect_gpu_btn.configure(state="normal", text="🔄 Detect GPU")
         
         status_text = f"❌ Detection Error\nError: {error}"

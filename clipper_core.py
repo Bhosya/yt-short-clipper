@@ -48,8 +48,17 @@ except ImportError:
     YTDLP_MODULE_AVAILABLE = False
 
 try:
-    import google.generativeai as genai
-    GOOGLE_GENAI_AVAILABLE = True
+    # Try new package first (google.genai), fallback to deprecated package
+    try:
+        import google.genai as genai
+        GOOGLE_GENAI_AVAILABLE = True
+    except ImportError:
+        # Fallback to deprecated package with warning suppressed
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=FutureWarning)
+            import google.generativeai as genai
+        GOOGLE_GENAI_AVAILABLE = True
 except ImportError:
     GOOGLE_GENAI_AVAILABLE = False
 
